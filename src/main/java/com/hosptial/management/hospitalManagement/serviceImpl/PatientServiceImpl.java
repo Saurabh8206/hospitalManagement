@@ -17,8 +17,10 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public void admitPatient(Patient patient) {
-        patient.setStatus(Status.ADMITTED.name());
-        patientRepository.save(patient);
+        if (patient != null) {
+            patient.setStatus(Status.ADMITTED.name());
+            patientRepository.save(patient);
+        }
     }
 
     @Override
@@ -37,7 +39,11 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public List<Patient> getAllPatientsByStatus(String status) {
-        return patientRepository.findByStatus(status);
+        if (!status.isBlank()) {
+            return patientRepository.findByStatus(status);
+        } else {
+            throw new ResourceNotFoundException("Status not found");
+        }
     }
 }
 

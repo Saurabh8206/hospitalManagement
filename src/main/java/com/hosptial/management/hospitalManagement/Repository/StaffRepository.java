@@ -9,4 +9,7 @@ public interface StaffRepository extends JpaRepository<HospitalStaff, Long> {
     HospitalStaff findByUsernameAndPassword(String username, String password);
 
     HospitalStaff findByToken(String token);
+
+
+    boolean existsByUsername(String username);
 }

@@ -1,5 +1,6 @@
 package com.hosptial.management.hospitalManagement.serviceImpl;
 
+import com.hosptial.management.hospitalManagement.Exception.ResourceNotFoundException;
 import com.hosptial.management.hospitalManagement.Exception.UnauthorizedException;
 import com.hosptial.management.hospitalManagement.Model.HospitalStaff;
 import com.hosptial.management.hospitalManagement.Model.LoginDTO;
@@ -15,12 +16,19 @@ import java.util.UUID;
 
 @Service
 public class StaffServiceImpl implements StaffService {
+
+    private static final int TOKEN_EXPIRATION_HOURS = 24;
     @Autowired
     private StaffRepository staffRepository;
 
     @Override
     public void signup(LoginDTO staff) {
+        String username = staff.getUserName();
 
+        // Check if the username already exists in the repository
+        if (staffRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
         HospitalStaff hospitalStaff = HospitalStaff.builder()
                 .username(staff.getUserName())
                 .password(staff.getPassword())
@@ -36,7 +44,7 @@ public class StaffServiceImpl implements StaffService {
             // Generate and store the authentication token
             String authToken = generateAuthToken();
             staff.setToken(authToken);
-            staff.setTokenExpiration(LocalDateTime.now().plusHours(24));
+            staff.setTokenExpiration(LocalDateTime.now().plusHours(TOKEN_EXPIRATION_HOURS));
             staffRepository.save(staff);
             return authToken;
         } else {
@@ -58,7 +66,14 @@ public class StaffServiceImpl implements StaffService {
     }
 
     public Optional<HospitalStaff> fetchStaffById(Long staffId) {
-        return staffRepository.findById(staffId);
+
+        if (staffRepository.existsById(staffId)) {
+
+            return staffRepository.findById(staffId);
+        } else {
+            throw new ResourceNotFoundException("Staff not found with if:" + staffId);
+        }
+
     }
 
     private String generateAuthToken() {
